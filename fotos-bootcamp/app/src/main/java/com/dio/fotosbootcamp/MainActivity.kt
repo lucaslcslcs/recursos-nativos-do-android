@@ -8,13 +8,15 @@ import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Toast
+import androidx.core.app.ActivityCompat.startActivityForResult
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
 
     companion object{
-        private val PERMISSION_CODE_IMAGE_PICK = 1000
-        private val IMAGE_PICK_CODE = 1001
+        private const val PERMISSION_CODE_IMAGE_PICK = 1000
+        private const val IMAGE_PICK_CODE = 1001
+        private const val PERMISSION_CODE_CAMERA_CAPTURE = 2000
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -24,8 +26,7 @@ class MainActivity : AppCompatActivity() {
         pick_botton.setOnClickListener {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
-                    == PackageManager.PERMISSION_DENIED
-                ) {
+                    == PackageManager.PERMISSION_DENIED) {
                     val permission = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
                     requestPermissions(permission, PERMISSION_CODE_IMAGE_PICK)
                 } else {
@@ -34,6 +35,26 @@ class MainActivity : AppCompatActivity() {
 
             } else {
                 pickImageFromGalery()
+            }
+        }
+
+        open_camera_button.setOnClickListener {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (checkSelfPermission(Manifest.permission.CAMERA)
+                        == PackageManager.PERMISSION_DENIED ||
+                        checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                        == PackageManager.PERMISSION_DENIED) {
+
+                     val permissions = arrayOf(Manifest.permission.CAMERA,
+                            Manifest.permission.WRITE_EXTERNAL_STORAGE)
+
+                    requestPermissions(permissions, PERMISSION_CODE_CAMERA_CAPTURE)
+
+                }else{
+                    openCamera()
+                }
+            } else {
+                openCamera()
             }
         }
     }
@@ -49,6 +70,18 @@ class MainActivity : AppCompatActivity() {
                 }else {
                     Toast.makeText(this, "Permissão negada", Toast.LENGTH_SHORT).show()
                 }
+            }
+            PERMISSION_CODE_CAMERA_CAPTURE -> {
+                if (grantResults.size > 1 &&
+                    grantResults[0] == PackageManager.PERMISSION_GRANTED &&
+                    grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+                    openCamera()
+
+                }else {
+                    Toast.makeText(this, "Permissão negada", Toast.LENGTH_SHORT).show()
+                }
+            }
+
             }
         }
     }
